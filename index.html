@@ -324,6 +324,14 @@
       font-size: 14px;
     }
 
+
+    .online-status {
+      margin-top: 8px;
+      text-align: center;
+      font-size: 12px;
+      color: #8f7a66;
+    }
+
     .hint {
       margin-top: 14px;
       text-align: center;
@@ -340,28 +348,7 @@
       .controls { align-items: flex-start; }
       button { padding: 10px 12px; }
     }
-
-    .install-area {
-      display: flex;
-      justify-content: center;
-      margin-top: 10px;
-    }
-
-    #installApp {
-      display: none;
-      background: #776e65;
-    }
-
-    #installApp.show {
-      display: inline-block;
-    }
-
   </style>
-
-  <meta name="theme-color" content="#faf8ef" />
-  <meta name="description" content="랭킹 팝업이 포함된 2048 PWA 게임" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon-192.svg" />
 </head>
 <body>
   <main class="container">
@@ -426,6 +413,7 @@
             <tbody id="rankModalBody"></tbody>
           </table>
           <div id="emptyRankModal" class="empty-rank">아직 등록된 랭킹이 없습니다.</div>
+          <div id="onlineStatus" class="online-status">공용 랭킹 연결 준비 중...</div>
         </div>
 
         <button id="clearRanks" class="secondary small-btn">현재 랭킹 초기화</button>
@@ -433,7 +421,6 @@
     </div>
 
     <div class="hint">PC: 방향키 / 모바일: 스와이프 / 한 턴만 실행취소 가능</div>
-    <div class="install-area"><button id="installApp">앱으로 설치</button></div>
   </main>
 
   <script>
@@ -475,36 +462,59 @@
     const rankTab3 = document.getElementById("rankTab3");
     const rankTab4 = document.getElementById("rankTab4");
     const clearRanksBtn = document.getElementById("clearRanks");
+    const onlineStatus = document.getElementById("onlineStatus");
 
     function storageKey() {
       return `animated2048Best_${SIZE}`;
     }
 
-    function rankingKey(size = SIZE) {
-      return `animated2048Ranks_${size}`;
+    const SUPABASE_URL = "https://wyrvbhfnxhzyaidcgeka.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_aULUqscPeqoEsDwKy1TMsg_YRDuFj5x";
+    const RANKING_TABLE = "rankings";
+
+    function modeLabel(size = SIZE) {
+      return `${size}x${size}`;
     }
 
-    function getRanks(size = SIZE) {
-      try {
-        return JSON.parse(localStorage.getItem(rankingKey(size)) || "[]");
-      } catch {
-        return [];
+    async function fetchRanks(size = visibleRankSize || SIZE) {
+      const url = `${SUPABASE_URL}/rest/v1/${RANKING_TABLE}?mode=eq.${modeLabel(size)}&select=name,score,mode,created_at&order=score.desc&order=created_at.asc&limit=10`;
+
+      const response = await fetch(url, {
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`랭킹 조회 실패: ${response.status}`);
+      }
+
+      return await response.json();
+    }
+
+    async function insertRank(name, scoreValue, size = SIZE) {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/${RANKING_TABLE}`, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json",
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({
+          name,
+          score: scoreValue,
+          mode: modeLabel(size)
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`랭킹 등록 실패: ${response.status}`);
       }
     }
 
-    function saveRanks(ranks, size = SIZE) {
-      localStorage.setItem(rankingKey(size), JSON.stringify(ranks));
-    }
-
-    function renderRanks(size = visibleRankSize || SIZE) {
-      visibleRankSize = size;
-
-      const ranks = getRanks(size)
-        .sort((a, b) => b.score - a.score || a.createdAt - b.createdAt)
-        .slice(0, 10);
-
-      rankTab3.classList.toggle("active", size === 3);
-      rankTab4.classList.toggle("active", size === 4);
+    function renderRankRows(ranks) {
       rankModalBody.innerHTML = "";
       emptyRankModal.style.display = ranks.length ? "none" : "block";
 
@@ -526,31 +536,51 @@
       });
     }
 
-    function submitRank() {
+    async function renderRanks(size = visibleRankSize || SIZE) {
+      visibleRankSize = size;
+
+      rankTab3.classList.toggle("active", size === 3);
+      rankTab4.classList.toggle("active", size === 4);
+
+      rankModalBody.innerHTML = "";
+      emptyRankModal.style.display = "block";
+      emptyRankModal.textContent = "랭킹 불러오는 중...";
+      onlineStatus.textContent = "Supabase 공용 랭킹 조회 중...";
+
+      try {
+        const ranks = await fetchRanks(size);
+        renderRankRows(ranks);
+        emptyRankModal.textContent = "아직 등록된 랭킹이 없습니다.";
+        onlineStatus.textContent = "공용 랭킹 연결됨";
+      } catch (error) {
+        console.error(error);
+        rankModalBody.innerHTML = "";
+        emptyRankModal.style.display = "block";
+        emptyRankModal.textContent = "랭킹을 불러오지 못했습니다. Supabase 테이블/정책을 확인하세요.";
+        onlineStatus.textContent = error.message;
+      }
+    }
+
+    async function submitRank() {
       const name = playerNameInput.value.trim();
       if (!name) {
         playerNameInput.focus();
         return;
       }
 
-      const ranks = getRanks(SIZE);
-      ranks.push({
-        name,
-        score,
-        mode: `${SIZE}×${SIZE}`,
-        createdAt: Date.now()
-      });
-
-      saveRanks(
-        ranks
-          .sort((a, b) => b.score - a.score || a.createdAt - b.createdAt)
-          .slice(0, 10),
-        SIZE
-      );
-
-      renderRanks(SIZE);
       saveRankBtn.disabled = true;
-      saveRankBtn.textContent = "등록 완료";
+      saveRankBtn.textContent = "등록 중...";
+
+      try {
+        await insertRank(name, score, SIZE);
+        await renderRanks(SIZE);
+        saveRankBtn.textContent = "등록 완료";
+      } catch (error) {
+        console.error(error);
+        saveRankBtn.disabled = false;
+        saveRankBtn.textContent = "다시 등록";
+        alert("랭킹 등록에 실패했습니다. Supabase 테이블과 정책을 확인해주세요.");
+      }
     }
 
     function resetRankForm() {
@@ -559,21 +589,8 @@
       saveRankBtn.textContent = "랭킹 등록";
     }
 
-    function openRankModal(size = SIZE) {
-      renderRanks(size);
-      rankModal.classList.add("show");
-      rankModal.setAttribute("aria-hidden", "false");
-    }
-
-    function closeRankModal() {
-      rankModal.classList.remove("show");
-      rankModal.setAttribute("aria-hidden", "true");
-    }
-
-    function clearCurrentRanks() {
-      if (!confirm(`${visibleRankSize}×${visibleRankSize} 랭킹을 초기화할까요?`)) return;
-      localStorage.removeItem(rankingKey(visibleRankSize));
-      renderRanks(visibleRankSize);
+    async function clearCurrentRanks() {
+      alert("공용 랭킹 초기화는 보안을 위해 HTML에서 비활성화했습니다. Supabase Table Editor에서 직접 삭제해주세요.");
     }
 
     function loadBest() {
@@ -1036,37 +1053,6 @@
     });
 
     startGame();
-
-    const installAppBtn = document.getElementById("installApp");
-    let deferredInstallPrompt = null;
-
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js").catch(error => {
-          console.log("Service Worker registration failed:", error);
-        });
-      });
-    }
-
-    window.addEventListener("beforeinstallprompt", event => {
-      event.preventDefault();
-      deferredInstallPrompt = event;
-      installAppBtn.classList.add("show");
-    });
-
-    installAppBtn.addEventListener("click", async () => {
-      if (!deferredInstallPrompt) return;
-      deferredInstallPrompt.prompt();
-      await deferredInstallPrompt.userChoice;
-      deferredInstallPrompt = null;
-      installAppBtn.classList.remove("show");
-    });
-
-    window.addEventListener("appinstalled", () => {
-      deferredInstallPrompt = null;
-      installAppBtn.classList.remove("show");
-    });
-
   </script>
 </body>
 </html>
