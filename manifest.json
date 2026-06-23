@@ -1,7 +1,7 @@
 {
-  "name": "2048 Clone",
+  "name": "2048 Ranking",
   "short_name": "2048",
-  "description": "3x3와 4x4를 선택할 수 있는 2048 PWA 게임",
+  "description": "3x3와 4x4, 랭킹 팝업을 지원하는 2048 PWA 게임",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
