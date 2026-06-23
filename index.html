@@ -471,9 +471,7 @@
           <div id="emptyRankModal" class="empty-rank">아직 등록된 랭킹이 없습니다.</div>
           <div id="onlineStatus" class="empty-rank" style="font-size:12px;padding-top:4px;"></div>
         </div>
-
-        <button id="clearRanks" class="secondary small-btn">현재 랭킹 초기화</button>
-      </div>
+</div>
     </div>
 
     <div class="hint">PC: 방향키 / 모바일: 스와이프 / 한 턴만 실행취소 가능</div>
@@ -517,8 +515,7 @@
     const closeRankModalBtn = document.getElementById("closeRankModal");
     const rankTab3 = document.getElementById("rankTab3");
     const rankTab4 = document.getElementById("rankTab4");
-    const clearRanksBtn = document.getElementById("clearRanks");
-    const onlineStatus = document.getElementById("onlineStatus");
+const onlineStatus = document.getElementById("onlineStatus");
 
     function storageKey() {
       return `animated2048Best_${SIZE}`;
@@ -658,12 +655,7 @@
       rankModal.classList.remove("show");
       rankModal.setAttribute("aria-hidden", "true");
     }
-
-    function clearCurrentRanks() {
-      alert("공용 랭킹 초기화는 Supabase Table Editor에서 직접 삭제해주세요.");
-    }
-
-    function loadBest() {
+function loadBest() {
       best = Number(localStorage.getItem(storageKey()) || 0);
       bestEl.textContent = best;
     }
@@ -1121,8 +1113,7 @@
     closeRankModalBtn.addEventListener("click", closeRankModal);
     rankTab3.addEventListener("click", () => renderRanks(3));
     rankTab4.addEventListener("click", () => renderRanks(4));
-    clearRanksBtn.addEventListener("click", clearCurrentRanks);
-    rankModal.addEventListener("click", event => {
+rankModal.addEventListener("click", event => {
       if (event.target === rankModal) closeRankModal();
     });
 
