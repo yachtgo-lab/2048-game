@@ -827,7 +827,7 @@
     function buildNewsFromRanks(rows) {
       const messages = [];
 
-      ["4x4", "3x3"].forEach(mode => {
+      ["3x3", "4x4"].forEach(mode => {
         const label = mode.replace("x", "×");
         const ranks = rows
           .filter(row => String(row.mode).trim().toLowerCase() === mode)
