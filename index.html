@@ -485,10 +485,12 @@
       <div class="overlay" id="overlay">
         <h2 id="message">Game Over</h2>
         <p id="subMessage"></p>
-        <div class="rank-form">
+        <div class="rank-form" id="rankForm">
           <input id="playerName" type="text" maxlength="12" placeholder="이름 입력" autocomplete="off" />
           <button id="saveRank">랭킹 등록</button>
         </div>
+        <button id="continueChallenge" class="secondary">계속 도전</button>
+        <button id="registerNow" class="secondary">여기서 랭킹 등록</button>
         <button id="viewRankAfterSave" class="secondary">랭킹 보기</button>
         <button id="again">다시 시작</button>
       </div>
@@ -559,6 +561,9 @@
     const mode3Btn = document.getElementById("mode3");
     const mode4Btn = document.getElementById("mode4");
     const saveRankBtn = document.getElementById("saveRank");
+    const rankForm = document.getElementById("rankForm");
+    const continueChallengeBtn = document.getElementById("continueChallenge");
+    const registerNowBtn = document.getElementById("registerNow");
     const playerNameInput = document.getElementById("playerName");
     const viewRankAfterSaveBtn = document.getElementById("viewRankAfterSave");
     const rankModal = document.getElementById("rankModal");
@@ -743,6 +748,7 @@
       score = snap.score;
       won = snap.won;
       history = null;
+      setOverlayMode("rank");
       overlay.classList.remove("show");
       renderFinal();
       updateUi();
@@ -1023,7 +1029,7 @@
 
         if (hasValue(WIN_VALUE) && !won) {
           won = true;
-          setTimeout(() => showOverlay("You Win!", "이름을 입력하면 랭킹에 등록됩니다."), 160);
+          setTimeout(showWinChoice, 160);
         } else if (!canMove()) {
           setTimeout(() => showOverlay("Game Over", "이름을 입력하면 랭킹에 등록됩니다."), 160);
         }
@@ -1096,11 +1102,42 @@
       return false;
     }
 
-    function showOverlay(title, subtitle) {
-      message.textContent = title;
-      subMessage.textContent = subtitle || "";
-      resetRankForm();
+
+    function setOverlayMode(mode) {
+      const isWinChoice = mode === "win-choice";
+      const isRank = mode === "rank";
+
+      rankForm.style.display = isRank ? "grid" : "none";
+      saveRankBtn.style.display = isRank ? "" : "none";
+      continueChallengeBtn.style.display = isWinChoice ? "" : "none";
+      registerNowBtn.style.display = isWinChoice ? "" : "none";
+      viewRankAfterSaveBtn.style.display = isRank ? "" : "none";
+      document.getElementById("again").style.display = isRank ? "" : "none";
+    }
+
+    function showWinChoice() {
+      message.textContent = "2048 달성!";
+      subMessage.textContent = "계속 도전해서 더 높은 점수를 만들까요?";
+      setOverlayMode("win-choice");
       overlay.classList.add("show");
+    }
+
+    function continueChallenge() {
+      overlay.classList.remove("show");
+      setOverlayMode("rank");
+    }
+
+    function showRankRegistration(title = "랭킹 등록", subtitle = "이름을 입력하면 현재 점수로 랭킹에 등록됩니다.") {
+      message.textContent = title;
+      subMessage.textContent = subtitle;
+      resetRankForm();
+      setOverlayMode("rank");
+      overlay.classList.add("show");
+    }
+
+
+    function showOverlay(title, subtitle) {
+      showRankRegistration(title, subtitle || "");
     }
 
     function undo() {
@@ -1154,6 +1191,8 @@
     mode4Btn.addEventListener("click", () => setMode(4));
 
     saveRankBtn.addEventListener("click", submitRank);
+    continueChallengeBtn.addEventListener("click", continueChallenge);
+    registerNowBtn.addEventListener("click", () => showRankRegistration("랭킹 등록", "현재 점수로 랭킹에 등록할 수 있습니다."));
     playerNameInput.addEventListener("keydown", event => {
       if (event.key === "Enter") submitRank();
     });
