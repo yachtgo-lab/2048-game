@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>2048 Clone - Supabase Ranking</title>
+  <title>2048 Clone - Supabase Ranking Fixed</title>
   <style>
     :root {
       --board-size: min(92vw, 500px);
@@ -340,6 +340,70 @@
       .controls { align-items: flex-start; }
       button { padding: 10px 12px; }
     }
+
+    /* 모바일 입력창 자동 확대 방지: iOS/모바일 브라우저는 input font-size가 16px 미만이면 화면을 확대함 */
+    .rank-form input {
+      font-size: 16px !important;
+      min-width: 0;
+    }
+
+    .overlay {
+      padding: 14px !important;
+    }
+
+    .overlay h2 {
+      font-size: clamp(34px, 10vw, 48px) !important;
+      line-height: 1 !important;
+    }
+
+    .overlay p {
+      font-size: clamp(18px, 5vw, 26px);
+      line-height: 1.25;
+      max-width: 92%;
+    }
+
+    .overlay .rank-form {
+      width: min(92%, 330px);
+      align-items: stretch;
+    }
+
+    .overlay .rank-form input,
+    .overlay .rank-form button {
+      height: 54px;
+    }
+
+    @media (max-width: 430px) {
+      .overlay {
+        gap: 10px !important;
+      }
+
+      .overlay .rank-form {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+      }
+
+      .overlay .rank-form button {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+    }
+
+    @media (max-height: 680px) {
+      .overlay h2 {
+        font-size: clamp(30px, 9vw, 42px) !important;
+      }
+
+      .overlay p {
+        font-size: 18px;
+      }
+
+      .overlay .rank-form input,
+      .overlay .rank-form button {
+        height: 48px;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -664,7 +728,7 @@
       if (SIZE === size) return;
       SIZE = size;
   
-    // 안전장치: 모바일/PWA에서도 랭킹 버튼이 반드시 열리도록 onclick 직접 연결
+    // 모바일/PWA 안전장치: 랭킹 버튼 직접 연결
     openRankModalBtn.onclick = () => openRankModal(SIZE);
     viewRankAfterSaveBtn.onclick = () => openRankModal(SIZE);
 
@@ -995,7 +1059,6 @@
       subMessage.textContent = subtitle || "";
       resetRankForm();
       overlay.classList.add("show");
-      setTimeout(() => playerNameInput.focus(), 80);
     }
 
     function undo() {
@@ -1064,7 +1127,7 @@
     });
 
 
-    // 안전장치: 모바일/PWA에서도 랭킹 버튼이 반드시 열리도록 onclick 직접 연결
+    // 모바일/PWA 안전장치: 랭킹 버튼 직접 연결
     openRankModalBtn.onclick = () => openRankModal(SIZE);
     viewRankAfterSaveBtn.onclick = () => openRankModal(SIZE);
 
