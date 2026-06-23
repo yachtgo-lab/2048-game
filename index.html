@@ -2,20 +2,26 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>2048 Clone - Supabase Ranking Fixed</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>2048 Clone - Supabase Ranking</title>
   <style>
     :root {
-      --board-size: min(92vw, 500px);
-      --gap: 12px;
+      --app-height: 100dvh;
+      --board-size: min(92vw, 430px, calc(var(--app-height) - 230px));
+      --gap: 10px;
       --size: 4;
       --cell-size: calc((var(--board-size) - (var(--gap) * (var(--size) + 1))) / var(--size));
+      --tile-font-2: min(56px, calc(var(--cell-size) * 0.48));
+      --tile-font-3: min(48px, calc(var(--cell-size) * 0.40));
+      --tile-font-4: min(42px, calc(var(--cell-size) * 0.32));
+      --tile-font-5: min(36px, calc(var(--cell-size) * 0.27));
     }
 
     * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
+      width: 100%;
       min-height: 100%;
       background: #faf8ef;
       font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
@@ -24,39 +30,44 @@
     }
 
     body {
-      min-height: 100vh;
+      min-height: var(--app-height);
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       touch-action: none;
+      overflow-x: hidden;
     }
 
     .container {
-      width: var(--board-size);
-      padding: 18px 0;
+      width: min(92vw, 430px);
+      padding: 10px 0 8px;
     }
 
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
+      gap: 10px;
+      margin-bottom: 8px;
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(46px, 13vw, 72px);
+      font-size: clamp(40px, 12vw, 62px);
       line-height: 1;
       font-weight: 900;
       color: #776e65;
     }
 
-    .scores { display: flex; gap: 8px; }
+    .scores {
+      display: flex;
+      gap: 7px;
+      flex-shrink: 0;
+    }
 
     .score-box {
-      min-width: 76px;
-      padding: 8px 12px;
+      min-width: 66px;
+      padding: 6px 9px;
       border-radius: 6px;
       background: #bbada0;
       color: #fff;
@@ -67,40 +78,44 @@
     .score-box small {
       display: block;
       margin-bottom: 2px;
-      font-size: 12px;
+      font-size: 10px;
       color: #eee4da;
     }
 
-    .score-box span { font-size: 21px; }
+    .score-box span {
+      font-size: 18px;
+    }
 
     .intro {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 10px;
-      font-size: 15px;
-      line-height: 1.45;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      line-height: 1.35;
     }
 
     .controls {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 18px;
+      gap: 8px;
+      margin-bottom: 10px;
       flex-wrap: wrap;
     }
 
-    .mode-buttons { display: flex; gap: 8px; }
+    .mode-buttons {
+      display: flex;
+      gap: 7px;
+    }
 
     button {
       border: 0;
       border-radius: 6px;
-      padding: 11px 14px;
+      padding: 9px 12px;
       background: #8f7a66;
       color: #f9f6f2;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 800;
       cursor: pointer;
       white-space: nowrap;
@@ -115,6 +130,7 @@
       position: relative;
       width: var(--board-size);
       height: var(--board-size);
+      margin: 0 auto;
       padding: var(--gap);
       border-radius: 10px;
       background: #bbada0;
@@ -199,8 +215,8 @@
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      gap: 14px;
-      padding: 20px;
+      gap: 10px;
+      padding: 14px;
       border-radius: 10px;
       background: rgba(238, 228, 218, 0.78);
       text-align: center;
@@ -210,28 +226,44 @@
 
     .overlay h2 {
       margin: 0;
-      font-size: clamp(36px, 11vw, 54px);
+      font-size: clamp(34px, 10vw, 48px);
+      line-height: 1;
       color: #776e65;
     }
 
-    .overlay p { margin: 0; font-weight: 700; }
+    .overlay p {
+      margin: 0;
+      font-size: clamp(17px, 4.6vw, 24px);
+      line-height: 1.25;
+      font-weight: 800;
+      max-width: 92%;
+    }
 
     .rank-form {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr auto;
       gap: 8px;
-      width: min(100%, 320px);
+      width: min(92%, 330px);
     }
 
     .rank-form input {
       width: 100%;
+      min-width: 0;
       border: 0;
       outline: 0;
       border-radius: 6px;
-      padding: 11px 12px;
-      font-size: 15px;
+      padding: 0 12px;
+      height: 52px;
+      font-size: 16px;
       font-weight: 700;
       color: #776e65;
       background: #fff;
+    }
+
+    .rank-form button {
+      height: 52px;
+      padding-left: 12px;
+      padding-right: 12px;
     }
 
     .rank-modal {
@@ -324,86 +356,103 @@
       font-size: 14px;
     }
 
-    .hint {
-      margin-top: 14px;
+    .online-status {
+      margin-top: 4px;
       text-align: center;
-      font-size: 13px;
+      font-size: 12px;
+      color: #8f7a66;
+    }
+
+    .hint {
+      margin-top: 8px;
+      text-align: center;
+      font-size: 12px;
       color: #8f7a66;
     }
 
     @media (max-width: 430px) {
-      :root { --gap: 9px; }
-      .header { align-items: flex-start; }
-      .scores { flex-direction: column; }
-      .score-box { min-width: 70px; padding: 7px 10px; }
-      .intro { flex-direction: column; align-items: flex-start; }
-      .controls { align-items: flex-start; }
-      button { padding: 10px 12px; }
-    }
-
-    /* 모바일 입력창 자동 확대 방지: iOS/모바일 브라우저는 input font-size가 16px 미만이면 화면을 확대함 */
-    .rank-form input {
-      font-size: 16px !important;
-      min-width: 0;
-    }
-
-    .overlay {
-      padding: 14px !important;
-    }
-
-    .overlay h2 {
-      font-size: clamp(34px, 10vw, 48px) !important;
-      line-height: 1 !important;
-    }
-
-    .overlay p {
-      font-size: clamp(18px, 5vw, 26px);
-      line-height: 1.25;
-      max-width: 92%;
-    }
-
-    .overlay .rank-form {
-      width: min(92%, 330px);
-      align-items: stretch;
-    }
-
-    .overlay .rank-form input,
-    .overlay .rank-form button {
-      height: 54px;
-    }
-
-    @media (max-width: 430px) {
-      .overlay {
-        gap: 10px !important;
+      :root {
+        --gap: 8px;
+        --board-size: min(92vw, 390px, calc(var(--app-height) - 215px));
       }
 
-      .overlay .rank-form {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 8px;
+      .container {
+        width: 92vw;
+        padding-top: 7px;
       }
 
-      .overlay .rank-form button {
-        padding-left: 12px;
-        padding-right: 12px;
+      h1 {
+        font-size: clamp(38px, 11vw, 52px);
+      }
+
+      .intro {
+        font-size: 13px;
+      }
+
+      .controls {
+        gap: 7px;
+      }
+
+      button {
+        padding: 8px 10px;
+        font-size: 13px;
       }
     }
 
-    @media (max-height: 680px) {
-      .overlay h2 {
-        font-size: clamp(30px, 9vw, 42px) !important;
+    @media (max-height: 760px) {
+      :root {
+        --gap: 8px;
+        --board-size: min(90vw, 380px, calc(var(--app-height) - 195px));
       }
 
-      .overlay p {
-        font-size: 18px;
+      .intro div {
+        display: none;
       }
 
-      .overlay .rank-form input,
-      .overlay .rank-form button {
-        height: 48px;
+      .hint {
+        display: none;
+      }
+
+      h1 {
+        font-size: clamp(34px, 10vw, 48px);
+      }
+
+      .container {
+        padding-top: 6px;
+      }
+
+      .score-box {
+        min-width: 62px;
+        padding: 5px 8px;
+      }
+
+      .score-box span {
+        font-size: 16px;
+      }
+
+      .score-box small {
+        font-size: 10px;
       }
     }
 
+    @media (max-height: 670px) {
+      :root {
+        --board-size: min(88vw, 350px, calc(var(--app-height) - 170px));
+        --gap: 7px;
+      }
+
+      .intro {
+        display: none;
+      }
+
+      .header {
+        margin-bottom: 6px;
+      }
+
+      .controls {
+        margin-bottom: 7px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -469,9 +518,9 @@
             <tbody id="rankModalBody"></tbody>
           </table>
           <div id="emptyRankModal" class="empty-rank">아직 등록된 랭킹이 없습니다.</div>
-          <div id="onlineStatus" class="empty-rank" style="font-size:12px;padding-top:4px;"></div>
+          <div id="onlineStatus" class="online-status"></div>
         </div>
-</div>
+      </div>
     </div>
 
     <div class="hint">PC: 방향키 / 모바일: 스와이프 / 한 턴만 실행취소 가능</div>
@@ -492,6 +541,10 @@
     let touchStartX = 0;
     let touchStartY = 0;
     let visibleRankSize = 4;
+
+    const SUPABASE_URL = "https://wyrvbhfnxhzyaidcgeka.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_aULUqscPeqoEsDwKy1TMsg_YRDuFj5x";
+    const RANKING_TABLE = "rankings";
 
     const root = document.documentElement;
     const gridEl = document.getElementById("grid");
@@ -515,15 +568,23 @@
     const closeRankModalBtn = document.getElementById("closeRankModal");
     const rankTab3 = document.getElementById("rankTab3");
     const rankTab4 = document.getElementById("rankTab4");
-const onlineStatus = document.getElementById("onlineStatus");
+    const onlineStatus = document.getElementById("onlineStatus");
+
+    function setAppHeight() {
+      const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      root.style.setProperty("--app-height", `${h}px`);
+    }
+
+    setAppHeight();
+    window.addEventListener("resize", setAppHeight);
+    window.addEventListener("orientationchange", () => setTimeout(setAppHeight, 250));
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", setAppHeight);
+    }
 
     function storageKey() {
       return `animated2048Best_${SIZE}`;
     }
-
-    const SUPABASE_URL = "https://wyrvbhfnxhzyaidcgeka.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_aULUqscPeqoEsDwKy1TMsg_YRDuFj5x";
-    const RANKING_TABLE = "rankings";
 
     function modeLabel(size = SIZE) {
       return `${size}x${size}`;
@@ -655,7 +716,8 @@ const onlineStatus = document.getElementById("onlineStatus");
       rankModal.classList.remove("show");
       rankModal.setAttribute("aria-hidden", "true");
     }
-function loadBest() {
+
+    function loadBest() {
       best = Number(localStorage.getItem(storageKey()) || 0);
       bestEl.textContent = best;
     }
@@ -719,12 +781,7 @@ function loadBest() {
     function setMode(size) {
       if (SIZE === size) return;
       SIZE = size;
-  
-    // 모바일/PWA 안전장치: 랭킹 버튼 직접 연결
-    openRankModalBtn.onclick = () => openRankModal(SIZE);
-    viewRankAfterSaveBtn.onclick = () => openRankModal(SIZE);
-
-    startGame();
+      startGame();
     }
 
     function updateModeButtons() {
@@ -783,17 +840,10 @@ function loadBest() {
 
     function getFontSize(value) {
       const digits = String(value).length;
-      if (SIZE === 3) {
-        if (digits <= 2) return "clamp(38px, 15vw, 78px)";
-        if (digits === 3) return "clamp(32px, 12vw, 64px)";
-        if (digits === 4) return "clamp(26px, 10vw, 52px)";
-        return "clamp(22px, 8vw, 44px)";
-      }
-
-      if (digits <= 2) return "clamp(28px, 9vw, 56px)";
-      if (digits === 3) return "clamp(24px, 7.5vw, 48px)";
-      if (digits === 4) return "clamp(20px, 6.6vw, 42px)";
-      return "clamp(18px, 5.8vw, 38px)";
+      if (digits <= 2) return "var(--tile-font-2)";
+      if (digits === 3) return "var(--tile-font-3)";
+      if (digits === 4) return "var(--tile-font-4)";
+      return "var(--tile-font-5)";
     }
 
     function createTileEl(tile, row, col, extraClass = "") {
@@ -1113,12 +1163,10 @@ function loadBest() {
     closeRankModalBtn.addEventListener("click", closeRankModal);
     rankTab3.addEventListener("click", () => renderRanks(3));
     rankTab4.addEventListener("click", () => renderRanks(4));
-rankModal.addEventListener("click", event => {
+    rankModal.addEventListener("click", event => {
       if (event.target === rankModal) closeRankModal();
     });
 
-
-    // 모바일/PWA 안전장치: 랭킹 버튼 직접 연결
     openRankModalBtn.onclick = () => openRankModal(SIZE);
     viewRankAfterSaveBtn.onclick = () => openRankModal(SIZE);
 
