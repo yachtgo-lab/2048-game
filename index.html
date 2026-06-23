@@ -6,10 +6,14 @@
   <title>2048 Clone - Ranking Modal</title>
   <style>
     :root {
-      --board-size: min(92vw, 500px);
+      --board-size: min(90vw, 460px, calc(100vh - 235px));
       --gap: 12px;
       --size: 4;
       --cell-size: calc((var(--board-size) - (var(--gap) * (var(--size) + 1))) / var(--size));
+      --tile-font-2: calc(var(--cell-size) * 0.48);
+      --tile-font-3: calc(var(--cell-size) * 0.40);
+      --tile-font-4: calc(var(--cell-size) * 0.32);
+      --tile-font-5: calc(var(--cell-size) * 0.27);
     }
 
     * { box-sizing: border-box; }
@@ -33,7 +37,7 @@
 
     .container {
       width: var(--board-size);
-      padding: 18px 0;
+      padding: 8px 0;
     }
 
     .header {
@@ -41,12 +45,12 @@
       justify-content: space-between;
       align-items: center;
       gap: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(46px, 13vw, 72px);
+      font-size: clamp(38px, 10vw, 58px);
       line-height: 1;
       font-weight: 900;
       color: #776e65;
@@ -56,7 +60,7 @@
 
     .score-box {
       min-width: 76px;
-      padding: 8px 12px;
+      padding: 6px 10px;
       border-radius: 6px;
       background: #bbada0;
       color: #fff;
@@ -71,14 +75,14 @@
       color: #eee4da;
     }
 
-    .score-box span { font-size: 21px; }
+    .score-box span { font-size: 18px; }
 
     .intro {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 12px;
-      margin-bottom: 10px;
+      margin-bottom: 7px;
       font-size: 15px;
       line-height: 1.45;
     }
@@ -87,8 +91,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 18px;
+      gap: 8px;
+      margin-bottom: 10px;
       flex-wrap: wrap;
     }
 
@@ -97,7 +101,7 @@
     button {
       border: 0;
       border-radius: 6px;
-      padding: 11px 14px;
+      padding: 9px 12px;
       background: #8f7a66;
       color: #f9f6f2;
       font-size: 15px;
@@ -261,8 +265,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 8px;
+      margin-bottom: 8px;
     }
 
     .rank-modal-header h3 {
@@ -275,14 +279,14 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
     .rank-panel-modal {
       padding: 10px;
       border-radius: 10px;
       background: rgba(187, 173, 160, 0.22);
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
     .rank-panel-modal table {
@@ -333,7 +337,7 @@
     }
 
     .hint {
-      margin-top: 14px;
+      margin-top: 8px;
       text-align: center;
       font-size: 13px;
       color: #8f7a66;
@@ -348,6 +352,62 @@
       .controls { align-items: flex-start; }
       button { padding: 10px 12px; }
     }
+
+    @media (max-height: 740px) {
+      :root {
+        --board-size: min(88vw, 420px, calc(100vh - 210px));
+        --gap: 8px;
+      }
+
+      .container {
+        padding: 5px 0;
+      }
+
+      h1 {
+        font-size: clamp(32px, 9vw, 48px);
+      }
+
+      .intro {
+        font-size: 13px;
+      }
+
+      .score-box {
+        min-width: 66px;
+      }
+
+      .score-box small {
+        font-size: 10px;
+      }
+
+      .score-box span {
+        font-size: 16px;
+      }
+
+      button {
+        padding: 8px 10px;
+        font-size: 13px;
+      }
+
+      .hint {
+        font-size: 11px;
+      }
+    }
+
+    @media (max-height: 650px) {
+      .intro div {
+        display: none;
+      }
+
+      .hint {
+        display: none;
+      }
+
+      :root {
+        --board-size: min(88vw, 390px, calc(100vh - 160px));
+        --gap: 7px;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -716,17 +776,10 @@
 
     function getFontSize(value) {
       const digits = String(value).length;
-      if (SIZE === 3) {
-        if (digits <= 2) return "clamp(38px, 15vw, 78px)";
-        if (digits === 3) return "clamp(32px, 12vw, 64px)";
-        if (digits === 4) return "clamp(26px, 10vw, 52px)";
-        return "clamp(22px, 8vw, 44px)";
-      }
-
-      if (digits <= 2) return "clamp(28px, 9vw, 56px)";
-      if (digits === 3) return "clamp(24px, 7.5vw, 48px)";
-      if (digits === 4) return "clamp(20px, 6.6vw, 42px)";
-      return "clamp(18px, 5.8vw, 38px)";
+      if (digits <= 2) return "var(--tile-font-2)";
+      if (digits === 3) return "var(--tile-font-3)";
+      if (digits === 4) return "var(--tile-font-4)";
+      return "var(--tile-font-5)";
     }
 
     function createTileEl(tile, row, col, extraClass = "") {
@@ -1053,6 +1106,16 @@
     });
 
     startGame();
+
+    // Fallback binding: 일부 모바일/PWA 환경에서 기존 listener가 꼬여도 랭킹 버튼이 열리도록 보강
+    setTimeout(() => {
+      const rankOpenButton = document.getElementById("openRankModal");
+      const rankModalEl = document.getElementById("rankModal");
+      if (rankOpenButton && rankModalEl) {
+        rankOpenButton.onclick = () => openRankModal(SIZE);
+      }
+    }, 0);
+
   </script>
 </body>
 </html>
